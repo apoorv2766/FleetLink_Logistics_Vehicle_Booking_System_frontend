@@ -9,6 +9,7 @@ import {
   Alert,
   Paper,
   Snackbar,
+  Slide,
 } from "@mui/material";
 
 import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
@@ -23,6 +24,10 @@ export default function SearchBookForm({ propsVechiles }) {
   const [vehicles, setVehicles] = useState([]);
   const [message, setMessage] = useState("");
   const [severity, setSeverity] = useState("success");
+
+  const SlideTransition = (props) => {
+    return <Slide {...props} direction="down" />;
+  };
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -43,11 +48,10 @@ export default function SearchBookForm({ propsVechiles }) {
   const handleSearch = async (e) => {
     e.preventDefault();
 
-    if (!capacityRequired || !fromPincode || !toPincode || !startTime) {
-      showSnackbar("Please fill all required fields", "error");
-      return;
+    if (!startTime) {
+      return showSnackbar("Please fill all required fields", "error");
     }
-    showSnackbar("Searching...", "info");
+
     try {
       const res = await getAvailableVehicles({
         capacityRequired: Number(capacityRequired),
@@ -55,59 +59,53 @@ export default function SearchBookForm({ propsVechiles }) {
         toPincode,
         startTime: startTime.toISOString(),
       });
-      console.log("response", res);
 
-      const { vehicles, estimatedRideDurationHours } = res.data;
+      const { vehicles = [], estimatedRideDurationHours, message } = res.data;
+
+      // if API sent a message but no vehicles
+      if (message && vehicles.length === 0) {
+        setVehicles([]);
+        setSeverity("info");
+        return showSnackbar(message, "error");
+      }
+
+      // add duration to all vehicles
       const vehiclesWithDuration = vehicles.map((v) => ({
         ...v,
         estimatedRideDurationHours,
       }));
 
       setVehicles(vehiclesWithDuration);
-      console.log(
-        "vehiclesWithDurationvehiclesWithDuration",
-        vehiclesWithDuration
-      );
-
       propsVechiles(vehiclesWithDuration, fromPincode, toPincode, startTime);
 
-      if (res.data.message) {
-        showSnackbar(res.data.message, "error");
+      // show snackbar based on result
+      if (!vehiclesWithDuration.length) {
         setSeverity("info");
-        setVehicles([]);
-        return;
-      }
-
-      //   if (res.data.message) {
-      //     setMessage(res.data.message);
-      //     setSeverity("info");
-      //     setVehicles([]);
-      //     return;
-      //   }
-      if (res.data.vehicles.length === 0) {
         showSnackbar(
           "No vehicles available for the selected criteria.",
           "info"
         );
-        setSeverity("info");
       } else {
+        setSeverity("success");
         showSnackbar(
           `Found ${vehiclesWithDuration.length} available vehicles.`,
           "success"
         );
-        setSeverity("success");
       }
     } catch (err) {
-      showSnackbar(err.response?.data?.message || "Error fetching vehicles");
-      setSeverity("error");
       setVehicles([]);
+      setSeverity("error");
+      showSnackbar(
+        err.response?.data?.message || "Error fetching vehicles",
+        "error"
+      );
     }
   };
 
   return (
     <>
       <Container>
-        <Paper sx={{ padding: 4,width:"50%"}}>
+        <Paper sx={{ padding: 4, width: "40%" }}>
           <Typography variant="h4" gutterBottom align="center">
             Search & Book Vehicle
           </Typography>
@@ -116,31 +114,30 @@ export default function SearchBookForm({ propsVechiles }) {
               {message}
             </Alert>
           )}
-
           {/* Search Form */}
           <Box
             component="form"
             onSubmit={handleSearch}
-            sx={{ display: "flex", flexDirection: "column", gap: 2, }}
+            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
             <TextField
               label="Capacity Required (KG)"
               type="number"
               value={capacityRequired}
               onChange={(e) => setCapacityRequired(e.target.value)}
-              // required
+              required
             />
             <TextField
               label="From Pincode"
               value={fromPincode}
               onChange={(e) => setFromPincode(e.target.value)}
-              // required
+              required
             />
             <TextField
               label="To Pincode"
               value={toPincode}
               onChange={(e) => setToPincode(e.target.value)}
-              // required
+              required
             />
             <LocalizationProvider required dateAdapter={AdapterDayjs}>
               <DateTimePicker
@@ -156,7 +153,7 @@ export default function SearchBookForm({ propsVechiles }) {
               color="primary"
               size="large"
             >
-              Search Availability
+              Search Vehicle
             </Button>
           </Box>
         </Paper>
@@ -166,12 +163,18 @@ export default function SearchBookForm({ propsVechiles }) {
           autoHideDuration={2000}
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: "top", horizontal: "right" }}
+          TransitionComponent={SlideTransition} 
         >
           <Alert
             onClose={handleCloseSnackbar}
             severity={snackbar.severity}
             variant="filled"
-            sx={{ width: "100%" }}
+            sx={{
+              width: "100%",
+              fontWeight: "bold",
+              boxShadow: 3,
+              borderRadius: 2,
+            }}
           >
             {snackbar.message}
           </Alert>

@@ -9,6 +9,7 @@ import {
   Paper,
   Snackbar,
   Alert,
+  Slide,
 } from "@mui/material";
 
 export default function AddVehicleForm() {
@@ -21,6 +22,10 @@ export default function AddVehicleForm() {
     message: "",
     severity: "success",
   });
+
+  const SlideTransition = (props) => {
+    return <Slide {...props} direction="down" />;
+  };
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -53,7 +58,7 @@ export default function AddVehicleForm() {
 
   return (
     <>
-      <Paper sx={{ padding: 4,width:"50%",mb:9}}>
+      <Paper sx={{ padding: 4, width: "40%", mb: 9 }}>
         <Typography variant="h4" gutterBottom align="center">
           Add Vehicle
         </Typography>
@@ -61,15 +66,22 @@ export default function AddVehicleForm() {
         <Box
           component="form"
           onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column",gap: 2 }}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
           <TextField
             label="Vehicle Name"
             variant="outlined"
+            type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^[a-zA-Z\s]*$/.test(value)) {
+                setName(value);
+              }
+            }}
             required
           />
+
           <TextField
             label="Capacity (KG)"
             type="number"
@@ -102,12 +114,18 @@ export default function AddVehicleForm() {
         autoHideDuration={2000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        TransitionComponent={SlideTransition}
       >
         <Alert
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
           variant="filled"
-          sx={{ width: "100%" }}
+          sx={{
+            width: "100%",
+            fontWeight: "bold",
+            boxShadow: 3,
+            borderRadius: 2,
+          }}
         >
           {snackbar.message}
         </Alert>

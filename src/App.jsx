@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./App.css";
 import AddVehiclePage from "./components/AddVehicleForm";
 import SearchBookForm from "./components/SearchBookForm";
 import { Box } from "@mui/material";
@@ -23,9 +22,9 @@ function App() {
       <Box
         sx={{
           display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          marginLeft: 45,
+          justifyContent: "center", 
+          alignItems: "center", 
+          paddingLeft:60,
         }}
       >
         <AddVehiclePage />

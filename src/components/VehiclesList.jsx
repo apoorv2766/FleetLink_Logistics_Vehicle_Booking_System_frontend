@@ -7,6 +7,7 @@ import {
   Button,
   Snackbar,
   Alert,
+  Slide,
 } from "@mui/material";
 import { createBooking } from "../api/api";
 import { useEffect, useState } from "react";
@@ -22,6 +23,10 @@ export default function VehiclesList({
     message: "",
     severity: "success",
   });
+
+  const SlideTransition = (props) => {
+    return <Slide {...props} direction="down" />;
+  };
   const [vehicles, setVehicles] = useState([]);
 
   useEffect(() => {
@@ -77,6 +82,7 @@ export default function VehiclesList({
           display: "flex",
           flexWrap: "wrap",
           gap: 5,
+          borderRadius: 5,
         }}
       >
         {vehicles?.map((vehicle) => (
@@ -110,12 +116,18 @@ export default function VehiclesList({
         autoHideDuration={2000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        TransitionComponent={SlideTransition}
       >
         <Alert
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
           variant="filled"
-          sx={{ width: "100%" }}
+          sx={{
+            width: "100%",
+            fontWeight: "bold",
+            boxShadow: 3,
+            borderRadius: 2,
+          }}
         >
           {snackbar.message}
         </Alert>
